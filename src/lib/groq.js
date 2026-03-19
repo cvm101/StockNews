@@ -1,30 +1,42 @@
 import Groq from "groq-sdk";
 
-// Initialize Groq.
-// Note: dangerouslyAllowBrowser is set to true so you can test this purely on the frontend without needing a backend server yet.
+// Initialize the Groq client
+// Note: dangerouslyAllowBrowser is used here for our local React project.
+// In a real, public production app, you would move this to a backend server to hide the API key!
 const groq = new Groq({
-    apiKey: import.meta.env.VITE_GROQ_API_KEY,
+    apiKey: import.meta.env.VITE_GROQ_API_KEY, // Ensure this matches your .env file
     dangerouslyAllowBrowser: true
 });
 
-export async function getInvestmentSummary(newsData, assetCategory) {
-    // Our professional prompt we discussed earlier
-    const prompt = `You are an expert financial analyst. I am providing you with the top latest news regarding the Indian ${assetCategory} market. 
-  Based ONLY on this news, provide exactly 5 concise bullet points summarizing where a smart investor should look, and whether the general sentiment is bullish (buy) or bearish (sell). Do not include any fluff. 
-  
-  Here is the news:
-  ${newsData}`;
+export async function getInvestmentSummary(news, portfolio) {
+    if (!news) return "No news provided to analyze.";
 
     try {
         const chatCompletion = await groq.chat.completions.create({
-            messages: [{ role: "user", content: prompt }],
-            model: "llama-3.1-8b-instant", // This is Groq's super fast, free Llama 3 model
-            temperature: 0.2, // Keeps the AI highly analytical and strictly focused on the facts
+            messages: [
+                {
+                    role: "system",
+                    content: `You are an expert financial advisor. 
+          
+          The user has the following specific investment portfolio: ${portfolio}
+          
+          Read the provided live market news. Give a short, insightful summary of how this news specifically impacts the user's portfolio. 
+          
+          If the news doesn't explicitly mention their specific assets, give a general market outlook and explain how the current trends might affect their specific sectors or asset classes. Keep the formatting clean and keep the response under 4 paragraphs.`
+                },
+                {
+                    role: "user",
+                    content: `Here is the latest market news: ${news}`
+                }
+            ],
+            // llama3-8b-8192 is incredibly fast, but you can change this to llama-3.1-70b-versatile for deeper logic
+            model: "llama-3.1-8b-instant",
+            temperature: 0.7,
         });
 
-        return chatCompletion.choices[0].message.content;
+        return chatCompletion.choices[0]?.message?.content || "No summary generated.";
     } catch (error) {
         console.error("Error fetching AI summary:", error);
-        return "Could not generate summary at this time.";
+        return "Sorry, there was an error generating the AI summary. Please check your Groq API key and console logs.";
     }
 }
