@@ -66,3 +66,28 @@ export async function searchSIP(query) {
         return [];
     }
 }
+
+// --- NEW: Fetch an array of 10 news articles ---
+export async function fetchNewsList() {
+    const url = `https://finnhub.io/api/v1/news?category=general&token=${import.meta.env.VITE_FINNHUB_API_KEY}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        // Grab the first 10 articles and format them cleanly
+        if (data && data.length > 0) {
+            return data.slice(0, 10).map(article => ({
+                id: article.id,
+                headline: article.headline,
+                summary: article.summary,
+                url: article.url,
+                source: article.source
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error("Error fetching news list:", error);
+        return [];
+    }
+}
