@@ -1,3 +1,6 @@
+# app 
+https://stocknews1.vercel.app/
+
 # FinanceAI Stock & SIP Dashboard
 
 React + Vite dashboard that pairs live market news with your saved Stocks/SIPs, summarizes the impact using Groq AI, and stores portfolio picks in Supabase. Finnhub powers market data and mfapi.in drives SIP search.
